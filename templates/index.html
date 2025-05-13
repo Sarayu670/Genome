@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Genomic Interaction Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@300;500;700&family=Raleway:wght@400;600&display=swap" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css"
+    />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+        position: relative;
+      }
+      
+      body:before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("/static/images/dna-background.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.5;
+        z-index: -1;
+      }
+      
+      .header {
+        background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+      .header-logo {
+        position: absolute;
+        top: 1rem;
+        right: 2rem;
+        height: 100px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+      }
+      .header h1 {
+        font-family: 'Montserrat', sans-serif;
+        color: white;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      .header .lead {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 400;
+      }
+      .card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        border: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #f5f7fa;
+        border-bottom: 1px solid #e2e8f0;
+        font-weight: 600;
+        border-radius: 10px 10px 0 0 !important;
+        color: #2c5282;
+        font-family: 'Raleway', sans-serif;
+      }
+      .form-label {
+        font-weight: 500;
+      }
+      .btn-primary {
+        background-color: #2c5282;
+        border-color: #2c5282;
+        transition: all 0.3s ease;
+      }
+      .btn-primary:hover {
+        background-color: #1a365d;
+        border-color: #1a365d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(26, 54, 93, 0.3);
+      }
+      .result-card {
+        display: none;
+        transition: all 0.3s ease;
+      }
+      .result-card.show {
+        display: block;
+      }
+      .prediction-yes {
+        color: #2c5282;
+        font-weight: bold;
+        font-size: 2.5rem;
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+        text-shadow: 0 1px 2px rgba(44, 82, 130, 0.2);
+      }
+      .prediction-no {
+        color: #1a202c;
+        font-weight: bold;
+        font-size: 2.5rem;
+        text-align: center;
+        font-family: 'Montserrat', sans-serif;
+        text-shadow: 0 1px 2px rgba(26, 32, 44, 0.2);
+      }
+      .match {
+        color: #2c5282;
+      }
+      .no-match {
+        color: #1a202c;
+      }
+      .probability-bar {
+        height: 20px;
+        background-color: #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 5px;
+      }
+      .probability-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #1a365d 0%, #2c5282 100%);
+        transition: width 0.5s ease;
+      }
+      .form-section {
+        margin-bottom: 1.5rem;
+      }
+      .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        font-family: 'Raleway', sans-serif;
+        color: #2c5282;
+      }
+      #predictionExplanation {
+        background-color: #f8f9fa;
+        border-left: 4px solid #2c5282;
+        padding: 0.75rem 1rem;
+        margin-top: 1rem;
+        border-radius: 0 5px 5px 0;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 300;
+        line-height: 1.6;
+      }
+      .about-section h4 {
+        color: #2c5282;
+        font-weight: 700;
+        font-family: 'Raleway', sans-serif;
+      }
+      .dataset-label {
+        display: inline-block;
+        background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+        color: white;
+        font-weight: 600;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(26, 54, 93, 0.3);
+      }
+      .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus, .form-select:focus {
+        border-color: #2c5282;
+        box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+      }
+      .bi {
+        color: #2c5282;
+      }
+      footer {
+        background: linear-gradient(135deg, #1a365d 0%, #2c5282 100%);
+        color: white;
+        font-family: 'Raleway', sans-serif;
+        padding: 1.5rem 0;
+        margin-top: 4rem;
+        box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+      }
+      .card ul li {
+        margin-bottom: 0.5rem;
+        position: relative;
+        padding-left: 1.5rem;
+      }
+      .card ul li:before {
+        content: '•';
+        color: #2c5282;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+        font-size: 1.2rem;
+      }
+      h2 {
+        font-family: 'Raleway', sans-serif;
+        color: #2c5282;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+      }
+      h3 {
+        font-family: 'Montserrat', sans-serif;
+        color: #1a365d;
+        font-weight: 600;
+      }
+      h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
+        color: #2c5282;
+      }
+      
+      /* Form sections with blue variations */
+      .form-section:nth-child(1) .section-title {
+        color: #2c5282;
+        border-bottom-color: #2c5282;
+      }
+      .form-section:nth-child(2) .section-title {
+        color: #1a365d;
+        border-bottom-color: #1a365d;
+      }
+      .form-section:nth-child(3) .section-title {
+        color: #2a4365;
+        border-bottom-color: #2a4365;
+      }
+      
+      /* Form labels */
+      .form-section:nth-child(1) .form-label {
+        color: #2c5282;
+      }
+      .form-section:nth-child(2) .form-label {
+        color: #1a365d;
+      }
+      .form-section:nth-child(3) .form-label {
+        color: #2a4365;
+      }
+      
+      /* Input field borders */
+      .form-section:nth-child(1) .form-control, 
+      .form-section:nth-child(1) .form-select {
+        border-left: 3px solid #2c5282;
+      }
+      .form-section:nth-child(2) .form-control, 
+      .form-section:nth-child(2) .form-select {
+        border-left: 3px solid #1a365d;
+      }
+      .form-section:nth-child(3) .form-control, 
+      .form-section:nth-child(3) .form-select {
+        border-left: 3px solid #2a4365;
+      }
+      
+      /* Focus colors for inputs */
+      .form-section:nth-child(1) .form-control:focus, 
+      .form-section:nth-child(1) .form-select:focus {
+        border-color: #2c5282;
+        box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+      }
+      .form-section:nth-child(2) .form-control:focus, 
+      .form-section:nth-child(2) .form-select:focus {
+        border-color: #1a365d;
+        box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+      }
+      .form-section:nth-child(3) .form-control:focus, 
+      .form-section:nth-child(3) .form-select:focus {
+        border-color: #2a4365;
+        box-shadow: 0 0 0 3px rgba(42, 67, 101, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img src="/static/images/logo.jpeg" alt="College Logo" class="header-logo">
+      <div class="container">
+        <h1 class="display-4">Genomic Interaction Predictor</h1>
+        <p class="lead">
+          Predict whether genomic interactions are significant based on
+          supporting pairs, distance, and other features.
+        </p>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="card mb-4">
+        <div class="card-body about-section">
+          <h4 class="mb-3">About This Predictor Tool</h4>
+          <p>
+            This tool uses a Random Forest model to predict the significance of genomic interactions in the context of drug responses. Using machine learning, it analyzes patterns in Hi-C chromatin interaction data to determine if an interaction is functionally important.
+          </p>
+          <p>
+            <span class="dataset-label">Dataset</span> This model was trained on breast cancer cell line data, analyzing how cells respond to cancer drugs (Gemcitabine and Carboplatin). The model achieves approximately 90% accuracy on test data.
+          </p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-input-cursor-text me-2"></i>Input Parameters
+            </div>
+            <div class="card-body">
+              <form id="predictionForm">
+                <div class="form-section">
+                  <div class="section-title">Basic Information</div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="IntGroup" class="form-label"
+                        >Interaction Type</label
+                      >
+                      <select
+                        class="form-select"
+                        id="IntGroup"
+                        name="IntGroup"
+                        required
+                      >
+                        <option value="PP">PP (Promoter-Promoter)</option>
+                        <option value="PD">PD (Promoter-Distal)</option>
+                        <option value="DD">DD (Distal-Distal)</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="Strand" class="form-label">Strand</label>
+                      <select
+                        class="form-select"
+                        id="Strand"
+                        name="Strand"
+                        required
+                      >
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="distance" class="form-label">Distance</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="distance"
+                        name="distance"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="NofInts" class="form-label"
+                        >Number of Interactions</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="NofInts"
+                        name="NofInts"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <div class="section-title">Supporting Pairs</div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="CG1_SuppPairs" class="form-label"
+                        >CG1 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CG1_SuppPairs"
+                        name="CG1_SuppPairs"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="CG2_SuppPairs" class="form-label"
+                        >CG2 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CG2_SuppPairs"
+                        name="CG2_SuppPairs"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="CC1_SuppPairs" class="form-label"
+                        >CC1 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CC1_SuppPairs"
+                        name="CC1_SuppPairs"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="CC2_SuppPairs" class="form-label"
+                        >CC2 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CC2_SuppPairs"
+                        name="CC2_SuppPairs"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="CN1_SuppPairs" class="form-label"
+                        >CN1 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CN1_SuppPairs"
+                        name="CN1_SuppPairs"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="CN2_SuppPairs" class="form-label"
+                        >CN2 Supporting Pairs</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="CN2_SuppPairs"
+                        name="CN2_SuppPairs"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <div class="section-title">Annotations</div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="Annotation" class="form-label"
+                        >Annotation</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="Annotation"
+                        name="Annotation"
+                        required
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="InteractorAnnotation" class="form-label"
+                        >Interactor Annotation</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="InteractorAnnotation"
+                        name="InteractorAnnotation"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                  <button type="submit" class="btn btn-primary btn-lg px-5 text-center">
+                    <i class="bi bi-search me-1 text-white"></i> Predict
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card result-card" id="resultCard">
+            <div class="card-header">
+              <i class="bi bi-graph-up me-2"></i>Prediction Result
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <h5>Predicted Significance:</h5>
+                <h3 id="predictionResult" class="mb-3"></h3>
+                <div id="predictionExplanation" class="mb-4 p-3 bg-light rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="py-4 mt-5">
+      <div class="container text-center">
+        <p class="mb-0">Genomic Interaction Predictor &copy; 2025 | Advanced Bioinformatics Tool</p>
+        <p class="mb-0 mt-2" style="font-size: 0.9rem;">Made by</p>
+        <div style="font-family: monospace; font-size: 0.9rem;">
+          <p class="mb-0">Tejaswi-23251A05F0</p>
+          <p class="mb-0">Sarayu-23251A05F4</p>
+          <p class="mb-0">Sravanthi-23251A05F6</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("predictionForm");
+        const resultCard = document.getElementById("resultCard");
+        const predictionResult = document.getElementById("predictionResult");
+
+        // Handle form submission
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(form);
+
+          fetch("/predict", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                alert("Error: " + data.error);
+                return;
+              }
+
+              // Display the result
+              resultCard.classList.add("show");
+
+              // Set prediction result
+              predictionResult.textContent = data.prediction;
+              predictionResult.className =
+                data.prediction === "YES" ? "prediction-yes" : "prediction-no";
+                
+              // Add explanation text based on prediction
+              const explanationDiv = document.getElementById("predictionExplanation");
+              if (data.prediction === "YES") {
+                explanationDiv.innerHTML = `
+                  <p>This genomic interaction is predicted to be biologically significant.</p>
+                  <p>This means the observed genomic interaction is likely due to the drug's effect, and not by chance.</p>
+                `;
+              } else {
+                explanationDiv.innerHTML = `
+                  <p>This genomic interaction is predicted to be non-significant.</p>
+                  <p>This means the observed genomic interaction is likely random or due to other factors, and not caused by the drug.</p>
+                `;
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("Error making prediction");
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
